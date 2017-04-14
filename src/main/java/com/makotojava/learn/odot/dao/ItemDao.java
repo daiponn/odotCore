@@ -142,11 +142,13 @@ public class ItemDao {
   public Item add(Item item) throws EntityPersistenceException {
     Item ret = null;
     //
-    String sql = "INSERT INTO " + Item.TABLE_NAME + "(description, due_date, finished) VALUES(?, ?, ?)";
-    Object[] paramValues =
-        { item.getDescription(),
-            (item.getDueDate() == null) ? new Date() : item.getDueDate(),
-            (item.getFinished() == null) ? false : item.getFinished() };
+    String sql = "INSERT INTO " + Item.TABLE_NAME + "(description, due_date, finished, category_id) VALUES(?, ?, ?, ?)";
+    Object[] paramValues = {
+        item.getDescription(),
+        (item.getDueDate() == null) ? new Date() : item.getDueDate(),
+        (item.getFinished() == null) ? false : item.getFinished(),
+        (item.getCategory() == null) ? null : item.getCategory().getId()
+    };
     JdbcTemplate jdbc = new JdbcTemplate(getDataSource());
     try {
       int numRowsAffected = jdbc.update(sql, paramValues);
@@ -179,8 +181,14 @@ public class ItemDao {
   public boolean update(Item item) {
     boolean ret = false;
     //
-    String sql = "UPDATE " + Item.TABLE_NAME + " SET description=? WHERE id=?";
-    Object[] paramValues = { item.getDescription(), item.getId() };
+    String sql = "UPDATE " + Item.TABLE_NAME + " SET description=?, category_id=?, due_date=?, finished=? WHERE id=?";
+    Object[] paramValues = {
+        item.getDescription(),
+        (item.getCategory() == null) ? null : item.getCategory().getId(),
+        (item.getDueDate() == null) ? null : item.getDueDate(),
+        (item.getFinished() == null) ? null : item.getFinished(),
+        item.getId()
+    };
     JdbcTemplate jdbc = new JdbcTemplate(getDataSource());
     try {
       log.info("Attempting to update " + Item.TABLE_NAME + " table with object "

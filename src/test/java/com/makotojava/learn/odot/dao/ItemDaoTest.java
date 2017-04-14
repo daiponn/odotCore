@@ -148,6 +148,33 @@ public class ItemDaoTest {
       }
     }
 
+    @Nested
+    @DisplayName("Add tests with category")
+    class ItemDaoOptimisticAddWithCategoryScenariosTest {
+
+      @Test
+      @DisplayName("Add Item")
+      public void testAdd() {
+        CategoryDao categoryDao = ctx.getBean(CategoryDao.class);
+        Item item = new Item()
+            .withDescription("Unit test w/ Category item #1")
+            .withCategory(categoryDao.findByName("TEST_CATEGORY_3"));
+        try {
+          Item itemAdded = classUnderTest.add(item);
+          assertNotNull(itemAdded);
+          assertNotNull(itemAdded.getId());
+          assertNotNull(itemAdded.getWhenCreated());
+          assertNotNull(itemAdded.getWhenLastUpdated());
+          assertAll("Fields must be equal",
+              () -> assertEquals(item.getDescription(), itemAdded.getDescription()),
+              () -> assertEquals(item.getCategory(), itemAdded.getCategory()));
+        } catch (EntityPersistenceException e) {
+          fail("Exception thrown. Unit test failed: " + e.getLocalizedMessage());
+        }
+      }
+
+    }
+
     @Test
     @DisplayName("Update Item")
     public void testUpdate() {
@@ -163,6 +190,31 @@ public class ItemDaoTest {
       Item itemUpdated = classUnderTest.findById(item0.getId());
       assertNotNull(itemUpdated);
       doFieldByFieldAssertEquals(item0, itemUpdated);
+    }
+
+    @Nested
+    @DisplayName("Update tests with category")
+    class ItemDaoOptimisticUpdateWithCategoryScenariosTest {
+
+      @Test
+      @DisplayName("Update Item")
+      public void testUpdate() {
+        CategoryDao categoryDao = ctx.getBean(CategoryDao.class);
+        // Not sure what IDs are there, so let's grab
+        /// them all, update one and make sure the update works
+        List<Item> items = classUnderTest.findAll();
+        assertNotNull(items);
+        assertFalse(items.isEmpty());
+        Item item0 = items.get(0);
+        item0.withDescription(item0.getDescription() + "_UPDATED")
+            .withCategory(categoryDao.findByName("TEST_CATEGORY_4"));
+        boolean succeeded = classUnderTest.update(item0);
+        assertTrue(succeeded);
+        Item itemUpdated = classUnderTest.findById(item0.getId());
+        assertNotNull(itemUpdated);
+        doFieldByFieldAssertEquals(item0, itemUpdated);
+      }
+
     }
 
     @Test
@@ -182,6 +234,7 @@ public class ItemDaoTest {
       }
       index++;
     }
+
   }
 
   @Nested
