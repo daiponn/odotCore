@@ -37,5 +37,4 @@ public class ItemTest {
       new Item().withCategory(CategoryTest.CATEGORY_10).withDescription("ITEM_10")
           .withDueDate(now).withFinished(false).withId(100L).withWhenCreated(now)
           .withWhenLastUpdated(now);
-
 }

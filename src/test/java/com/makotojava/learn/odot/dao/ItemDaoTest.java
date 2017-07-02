@@ -14,7 +14,9 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,6 +42,26 @@ public class ItemDaoTest {
   private static final Logger log = LoggerFactory.getLogger(ItemDaoTest.class);
 
   private ItemDao classUnderTest;
+
+  @BeforeAll
+  static void init() {
+    log.info("Tests starting...");
+  }
+
+  @BeforeEach
+  void setUp() {
+    log.info("Test beginning...");
+  }
+
+  @AfterEach
+  void tearDown() {
+    log.info("Test complete.");
+  }
+
+  @AfterAll
+  static void done() {
+    log.info("Tests complete.");
+  }
 
   @Nested
   @DisplayName("Empty DB Scenarios")

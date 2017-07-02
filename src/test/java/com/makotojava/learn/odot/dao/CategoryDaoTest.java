@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -12,13 +13,17 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
@@ -40,7 +45,29 @@ import com.makotojava.learn.odot.model.Category;
 @DisplayName("Testing CategoryDao")
 public class CategoryDaoTest {
 
+  private static final Logger log = LoggerFactory.getLogger(CategoryDaoTest.class);
+
   private CategoryDao classUnderTest;
+
+  @BeforeAll
+  static void init() {
+    log.info("Tests starting...");
+  }
+
+  @BeforeEach
+  void setUp() {
+    log.info("Test beginning...");
+  }
+
+  @AfterEach
+  void tearDown() {
+    log.info("Test complete.");
+  }
+
+  @AfterAll
+  static void done() {
+    log.info("Tests complete.");
+  }
 
   @Nested
   @DisplayName("Empty DB Scenarios")
@@ -62,11 +89,26 @@ public class CategoryDaoTest {
 
     @Test
     @DisplayName("findAll() returns empty list")
-    public void testFindAll() {
+    public void findAll() {
       List<Category> categories = classUnderTest.findAll();
       assertNotNull(categories);
       assertTrue(categories.isEmpty());
     }
+
+    @Test
+    @DisplayName("FindById() returns null")
+    public void findById() {
+      Category category = classUnderTest.findById(1L);
+      assertNull(category);
+    }
+
+    @Test
+    @DisplayName("FindByName() returns null")
+    public void findByName() {
+      Category category = classUnderTest.findByName("TEST_CATEGORY1");
+      assertNull(category);
+    }
+
   }
 
   @Nested
@@ -92,7 +134,7 @@ public class CategoryDaoTest {
     @DisplayName("Find All Categories")
     public void testFindAll() {
       List<Category> categories = classUnderTest.findAll();
-      assertNotNull(categories);
+      assertNotNull(categories, () -> "List returned from findAll() cannot be null!");
       assertAll(
           () -> assertFalse(categories.isEmpty()),
           () -> assertEquals(4, categories.size()));
@@ -148,12 +190,12 @@ public class CategoryDaoTest {
       // Not sure what IDs are there, so let's grab
       /// them all, update one and make sure the update works
       List<Category> categories = classUnderTest.findAll();
-      assertNotNull(categories);
+      assertNotNull(categories, "List cannot be null!");
       assertFalse(categories.isEmpty());
       Category cat0 = categories.get(0);
       cat0.withDescription(cat0.getDescription() + "_UPDATED");
       boolean succeeded = classUnderTest.update(cat0);
-      assertTrue(succeeded);
+      assertTrue(succeeded);// , "Update should succeed");
       Category catUpdated = classUnderTest.findById(cat0.getId());
       assertNotNull(catUpdated);
       doFieldByFieldAssertEquals(cat0, catUpdated);
@@ -202,8 +244,8 @@ public class CategoryDaoTest {
     @DisplayName("Add existing Category should throw exception")
     public void testAdd() throws Exception {
       List<Category> categories = classUnderTest.findAll();
-      assertNotNull(categories);
-      assertFalse(categories.isEmpty());
+      assertNotNull(categories, () -> "List returned from findAll() cannot be null!");
+      assertFalse(categories.isEmpty(), () -> "List returned from findAll() cannot be empty!");
       Category cat0 = categories.get(0);
       // Try and add the Category that exists already, expect exception...
       assertThrows(EntityPersistenceException.class, () -> classUnderTest.add(cat0));
@@ -214,7 +256,7 @@ public class CategoryDaoTest {
     public void testUpdate() {
       Category category = new Category().withDescription("DESCRIPTION").withName("NAME");
       boolean succeeded = classUnderTest.update(category);
-      assertFalse(succeeded);
+      assertFalse(succeeded, "Update non-existent Category should fail!");
     }
 
     @Test
